@@ -25,26 +25,55 @@ If the bundled CLI is absent, check whether `Graphviz2Visio.Cli` is available on
 
 ## Commands
 
-Use these commands, replacing paths with the actual working files:
+Use these commands, replacing paths with the actual working files. Keep `.dot`, `.plain`, and `.vsdx` files in the `flow/` directory with the same basename:
 
 ```powershell
 scripts\Graphviz2Visio.Cli.exe where-dot
-scripts\Graphviz2Visio.Cli.exe dot2plain input.dot output.plain
-scripts\Graphviz2Visio.Cli.exe plain2visio output.plain output.vsdx
+scripts\Graphviz2Visio.Cli.exe dot2plain flow\diagram.dot flow\diagram.plain
+scripts\Graphviz2Visio.Cli.exe plain2visio flow\diagram.plain flow\diagram.vsdx
 ```
 
 Add `--visible` to `plain2visio` only when the user explicitly wants Visio to open visibly during conversion.
 
 ## Workflow
 
-Create the DOT file in the user's target directory or a task-specific output directory. Keep generated `.dot` and `.plain` files alongside the `.vsdx` unless the user asks for cleanup; they are useful for debugging layout issues.
+Create outputs in a `flow/` directory under the user's current project or requested output root. Use the same basename for all generated files:
+
+```text
+flow/<name>.dot
+flow/<name>.plain
+flow/<name>.vsdx
+```
+
+Create the `flow/` directory if it does not exist. Keep generated `.dot` and `.plain` files alongside the `.vsdx` unless the user asks for cleanup; they are useful for debugging layout issues.
 
 Before conversion, make the DOT simple and layout-friendly:
 
 - Use stable node IDs and quoted labels.
+- Set explicit graph, node, and edge defaults so Visio does not inherit black fills:
+
+```dot
+graph [
+  bgcolor="white"
+];
+
+node [
+  style="filled",
+  fillcolor="white",
+  color="black",
+  fontcolor="black"
+];
+
+edge [
+  color="black",
+  fontcolor="black"
+];
+```
+
 - Prefer standard flowchart shapes: `oval` for start/end, `box` for process, `diamond` for decisions.
 - Use `rankdir=TB` for top-to-bottom flows or `rankdir=LR` for left-to-right flows.
 - Keep labels concise and line-break long text with `\n`.
+- Do not use `style="filled"` without an explicit `fillcolor`.
 - Avoid advanced Graphviz styling unless the Visio converter is known to preserve it.
 
 Run `where-dot` when Graphviz availability is uncertain or when `dot2plain` fails. If Graphviz is missing, explain that Graphviz `dot` must be installed or made available to the CLI.

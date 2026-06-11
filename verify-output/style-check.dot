@@ -1,0 +1,34 @@
+digraph Flow2VisioStyleCheck {
+  graph [
+    rankdir=TB,
+    bgcolor="white"
+  ];
+
+  node [
+    style="filled",
+    fillcolor="white",
+    color="black",
+    fontcolor="black",
+    fontname="Microsoft YaHei"
+  ];
+
+  edge [
+    color="black",
+    fontcolor="black",
+    fontname="Microsoft YaHei"
+  ];
+
+  start [shape=oval, label="Start"];
+  process [shape=box, label="Generate DOT"];
+  decision [shape=diamond, label="Style OK?"];
+  ok [shape=box, label="White Fill"];
+  fix [shape=box, label="Fix Defaults"];
+  end [shape=oval, label="End"];
+
+  start -> process;
+  process -> decision;
+  decision -> ok [label="Yes"];
+  decision -> fix [label="No"];
+  ok -> end;
+  fix -> process;
+}

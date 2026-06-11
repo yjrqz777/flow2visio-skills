@@ -179,11 +179,19 @@ flow2visio/
 
 ```powershell
 flow2visio\scripts\Graphviz2Visio.Cli.exe where-dot
-flow2visio\scripts\Graphviz2Visio.Cli.exe dot2plain input.dot output.plain
-flow2visio\scripts\Graphviz2Visio.Cli.exe plain2visio output.plain output.vsdx
+flow2visio\scripts\Graphviz2Visio.Cli.exe dot2plain flow\diagram.dot flow\diagram.plain
+flow2visio\scripts\Graphviz2Visio.Cli.exe plain2visio flow\diagram.plain flow\diagram.vsdx
 ```
 
 只有在需要转换过程中显示 Visio 窗口时，才给 `plain2visio` 添加 `--visible`。
+
+默认情况下，生成文件应放在 `flow/` 目录，并使用相同的文件名主体：
+
+```text
+flow/diagram.dot
+flow/diagram.plain
+flow/diagram.vsdx
+```
 
 ## 排查问题
 
@@ -203,6 +211,19 @@ flow2visio\scripts\Graphviz2Visio.Cli.exe plain2visio output.plain output.vsdx
 ```powershell
 Unblock-File .\flow2visio\scripts\Graphviz2Visio.Cli.exe
 ```
+
+如果生成的 Visio 形状是黑色填充：
+
+- 更新或重新安装最新的 `flow2visio/` skill 目录。
+- 确认生成的 DOT 文件显式设置默认样式：
+
+```dot
+graph [bgcolor="white"];
+node [style="filled", fillcolor="white", color="black", fontcolor="black"];
+edge [color="black", fontcolor="black"];
+```
+
+- 避免只写 `style="filled"`，但没有写 `fillcolor="white"` 或其他期望的填充色。
 
 ## 参考资料
 

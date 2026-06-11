@@ -1,0 +1,14 @@
+graph 1 3.2465 5.096
+node start 1.8576 4.8333 0.91826 0.52542 Start filled oval black white
+node process 1.8576 3.8067 1.5556 0.5 "Generate DOT" filled box black white
+node decision 1.1076 2.6713 2.2153 0.74306 "Style OK?" filled diamond black white
+node ok 1.1076 1.2893 1.0972 0.5 "White Fill" filled box black white
+node fix 2.5938 1.2893 1.3056 0.5 "Fix Defaults" filled box black white
+node end 1.1076 0.26271 0.81514 0.52542 End filled oval black white
+edge start process 4 1.8576 4.5673 1.8576 4.4621 1.8576 4.3372 1.8576 4.22 solid black
+edge process decision 4 1.6949 3.5524 1.6078 3.4238 1.498 3.2616 1.3969 3.1123 solid black
+edge decision ok 4 1.1076 2.2945 1.1076 2.1103 1.1076 1.8862 1.1076 1.6977 Yes 1.2587 1.9195 solid black
+edge decision fix 4 1.3977 2.3931 1.63 2.1814 1.9578 1.8827 2.2115 1.6515 No 2.1681 1.9195 solid black
+edge ok end 4 1.1076 1.0336 1.1076 0.93003 1.1076 0.80607 1.1076 0.68874 solid black
+edge fix process 7 2.5916 1.5419 2.5814 1.8847 2.5356 2.5314 2.3438 3.0428 2.2944 3.1743 2.2191 3.3067 2.1424 3.4228 solid black
+stop

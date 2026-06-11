@@ -179,11 +179,19 @@ For other clients, copy `flow2visio/` into that client's skill directory and mak
 
 ```powershell
 flow2visio\scripts\Graphviz2Visio.Cli.exe where-dot
-flow2visio\scripts\Graphviz2Visio.Cli.exe dot2plain input.dot output.plain
-flow2visio\scripts\Graphviz2Visio.Cli.exe plain2visio output.plain output.vsdx
+flow2visio\scripts\Graphviz2Visio.Cli.exe dot2plain flow\diagram.dot flow\diagram.plain
+flow2visio\scripts\Graphviz2Visio.Cli.exe plain2visio flow\diagram.plain flow\diagram.vsdx
 ```
 
 Use `--visible` with `plain2visio` only when Visio should be shown during conversion.
+
+By default, generated files should be placed in a `flow/` directory and share the same basename:
+
+```text
+flow/diagram.dot
+flow/diagram.plain
+flow/diagram.vsdx
+```
 
 ## Troubleshooting
 
@@ -203,6 +211,19 @@ If conversion fails:
 ```powershell
 Unblock-File .\flow2visio\scripts\Graphviz2Visio.Cli.exe
 ```
+
+If generated Visio shapes appear with black fills:
+
+- Update or reinstall the latest `flow2visio/` skill folder.
+- Make sure generated DOT files set explicit defaults:
+
+```dot
+graph [bgcolor="white"];
+node [style="filled", fillcolor="white", color="black", fontcolor="black"];
+edge [color="black", fontcolor="black"];
+```
+
+- Avoid `style="filled"` without `fillcolor="white"` or another intended fill color.
 
 ## References
 
