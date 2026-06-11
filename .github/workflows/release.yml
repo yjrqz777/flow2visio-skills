@@ -1,0 +1,114 @@
+name: Release Skill
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish, for example v1.0.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Package and publish flow2visio skill
+    runs-on: windows-latest
+
+    env:
+      SKILL_DIR: flow2visio
+      SKILL_NAME: flow2visio
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $tag = "${{ inputs.tag }}"
+          } else {
+            $tag = "${{ github.ref_name }}"
+          }
+
+          if ($tag -notmatch '^v[0-9]+(\.[0-9]+){1,2}(-[A-Za-z0-9.-]+)?$') {
+            throw "Release tag must look like v1.0.0 or v1.0.0-beta.1. Got: $tag"
+          }
+
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "version=$($tag.TrimStart('v'))" >> $env:GITHUB_OUTPUT
+
+      - name: Validate skill layout
+        shell: pwsh
+        run: |
+          $required = @(
+            "$env:SKILL_DIR/SKILL.md",
+            "$env:SKILL_DIR/scripts/Graphviz2Visio.Cli.exe",
+            "$env:SKILL_DIR/references",
+            "$env:SKILL_DIR/assets"
+          )
+
+          foreach ($path in $required) {
+            if (-not (Test-Path -LiteralPath $path)) {
+              throw "Missing required skill path: $path"
+            }
+          }
+
+      - name: Validate SKILL.md frontmatter
+        shell: pwsh
+        run: |
+          $skillPath = "$env:SKILL_DIR/SKILL.md"
+          $content = Get-Content -Raw -Encoding UTF8 $skillPath
+
+          if ($content -notmatch '(?s)^---\r?\n(.+?)\r?\n---\r?\n') {
+            throw "SKILL.md must start with YAML frontmatter."
+          }
+
+          $frontmatter = $Matches[1]
+          if ($frontmatter -notmatch '(?m)^name:\s*flow2visio\s*$') {
+            throw "SKILL.md frontmatter must contain: name: flow2visio"
+          }
+
+          if ($frontmatter -notmatch '(?m)^description:\s*\S.+$') {
+            throw "SKILL.md frontmatter must contain a non-empty description."
+          }
+
+      - name: Check bundled converter
+        shell: pwsh
+        run: |
+          & "$env:SKILL_DIR/scripts/Graphviz2Visio.Cli.exe" where-dot
+
+      - name: Package skill
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          $zip = "dist/$env:SKILL_NAME-skill-${{ steps.version.outputs.version }}.zip"
+          if (Test-Path -LiteralPath $zip) {
+            Remove-Item -LiteralPath $zip -Force
+          }
+
+          Compress-Archive -Path "$env:SKILL_DIR" -DestinationPath $zip -CompressionLevel Optimal
+
+          $hash = Get-FileHash -Algorithm SHA256 $zip
+          $hashLine = "$($hash.Hash)  $(Split-Path -Leaf $zip)"
+          Set-Content -Encoding ASCII -Path "$zip.sha256" -Value $hashLine
+
+          Get-ChildItem dist | Format-Table Name,Length
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: flow2visio ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            dist/*.zip
+            dist/*.sha256

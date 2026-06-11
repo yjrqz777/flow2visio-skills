@@ -175,6 +175,28 @@ flow2visio/
 - agent 运行在 Windows，并且可以访问 Visio。
 - 客户端允许执行 bundled scripts 或外部命令。
 
+## 发布 Release
+
+本仓库包含 GitHub Actions 工作流：`.github/workflows/release.yml`。
+
+该工作流会：
+
+- 校验 `flow2visio/` skill 目录结构。
+- 检查 `flow2visio/SKILL.md` frontmatter。
+- 运行 `Graphviz2Visio.Cli.exe where-dot`。
+- 将 `flow2visio/` 打包成 release ZIP。
+- 生成 SHA256 校验文件。
+- 将 ZIP 和校验文件发布到 GitHub Release。
+
+通过推送版本 tag 发布：
+
+```powershell
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+也可以在 GitHub Actions 页面手动运行 `Release Skill` workflow，并填写类似 `v1.0.0` 的 tag。
+
 ## CLI 命令
 
 ```powershell

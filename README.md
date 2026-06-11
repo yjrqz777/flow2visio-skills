@@ -175,6 +175,28 @@ For other clients, copy `flow2visio/` into that client's skill directory and mak
 - The agent is running on Windows with access to Visio.
 - The client allows execution of bundled scripts or external commands.
 
+## Publishing A Release
+
+This repository includes a GitHub Actions workflow at `.github/workflows/release.yml`.
+
+The workflow:
+
+- Validates the `flow2visio/` skill layout.
+- Checks `flow2visio/SKILL.md` frontmatter.
+- Runs `Graphviz2Visio.Cli.exe where-dot`.
+- Packages `flow2visio/` as a release ZIP.
+- Generates a SHA256 checksum.
+- Publishes both files to a GitHub Release.
+
+Publish by pushing a version tag:
+
+```powershell
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Or run the `Release Skill` workflow manually from GitHub Actions and provide a tag such as `v1.0.0`.
+
 ## CLI Commands
 
 ```powershell
