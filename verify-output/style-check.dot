@@ -1,34 +1,62 @@
-digraph Flow2VisioStyleCheck {
-  graph [
-    rankdir=TB,
-    bgcolor="white"
-  ];
+digraph G {
+    rankdir=TB;
+    fontname="Microsoft YaHei";
+    node [fontname="Microsoft YaHei", fontsize=10];
+    edge [fontname="Microsoft YaHei", fontsize=9];
 
-  node [
-    style="filled",
-    fillcolor="white",
-    color="black",
-    fontcolor="black",
-    fontname="Microsoft YaHei"
-  ];
+    graph [
+        bgcolor="white"
+    ];
 
-  edge [
-    color="black",
-    fontcolor="black",
-    fontname="Microsoft YaHei"
-  ];
+    node [
+        style="filled",
+        fillcolor="white",
+        color="black",
+        fontcolor="black"
+    ];
 
-  start [shape=oval, label="Start"];
-  process [shape=box, label="Generate DOT"];
-  decision [shape=diamond, label="Style OK?"];
-  ok [shape=box, label="White Fill"];
-  fix [shape=box, label="Fix Defaults"];
-  end [shape=oval, label="End"];
+    edge [
+        color="black",
+        fontcolor="black"
+    ];
 
-  start -> process;
-  process -> decision;
-  decision -> ok [label="Yes"];
-  decision -> fix [label="No"];
-  ok -> end;
-  fix -> process;
+    // Start/End
+    start [label="用户输入\n.dot 文件", shape=oval];
+    end [label="输出\n.vsdx 文件", shape=oval];
+
+    // CLI layer
+    cli [label="Cli 命令行入口\nProgram.cs", shape=box];
+    parse_cmd [label="解析命令参数", shape=box];
+    cmd_decision [label="命令类型?", shape=diamond];
+
+    // dot2plain branch
+    find_dot [label="GraphvizLocator\n定位 dot.exe", shape=box];
+    run_dot [label="GraphvizRunner\n执行 dot -Tplain", shape=box];
+    plain_output [label="生成 .plain 文件\n(布局坐标)", shape=box];
+
+    // plain2visio branch
+    parse_plain [label="PlainParser\n解析 plain 格式", shape=box];
+    build_model [label="构建数据模型\nGraphInfo/NodeInfo/EdgeInfo", shape=box];
+    render_visio [label="VisioRenderer\nCOM 绘制图形", shape=box];
+
+    // where-dot branch
+    where_dot [label="输出 dot.exe 路径", shape=box];
+
+    // Flow
+    start -> cli;
+    cli -> parse_cmd;
+    parse_cmd -> cmd_decision;
+
+    cmd_decision -> find_dot [label="dot2plain"];
+    cmd_decision -> parse_plain [label="plain2visio"];
+    cmd_decision -> where_dot [label="where-dot"];
+
+    find_dot -> run_dot;
+    run_dot -> plain_output;
+
+    parse_plain -> build_model;
+    build_model -> render_visio;
+    render_visio -> end;
+
+    plain_output -> end [style=dashed, label="可继续\nplain2visio"];
 }

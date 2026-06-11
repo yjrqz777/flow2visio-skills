@@ -13,7 +13,7 @@ flow2visio-skills/
   flow2visio/
     SKILL.md
     scripts/
-      Graphviz2Visio.Cli.exe
+      Graphviz2Visio-win-x64-standalone.exe
     references/
     assets/
 ```
@@ -26,26 +26,26 @@ flow2visio-skills/
 2. 将 DOT 转换为 Graphviz plain 格式。
 3. 将 plain 文件转换为可编辑的 Visio 文档。
 
-这个 skill 使用 [yjrqz777/graphviz2visio](https://github.com/yjrqz777/graphviz2visio) 项目提供的转换器。该项目提供本 skill 调用的 `Graphviz2Visio.Cli.exe` 命令。
+这个 skill 使用 [yjrqz777/graphviz2visio](https://github.com/yjrqz777/graphviz2visio) 项目提供的转换器。该项目提供本 skill 调用的 `Graphviz2Visio-win-x64-standalone.exe` 命令。
 
 内置 CLI 的预期位置：
 
 ```text
-flow2visio/scripts/Graphviz2Visio.Cli.exe
+flow2visio/scripts/Graphviz2Visio-win-x64-standalone.exe
 ```
 
 ## 运行要求
 
 - Windows。
 - 已安装 Microsoft Visio，并且转换器可以访问 Visio。
-- `flow2visio/scripts/` 下存在 `Graphviz2Visio.Cli.exe`。
+- `flow2visio/scripts/` 下存在 `Graphviz2Visio-win-x64-standalone.exe`。
 - Graphviz `dot` 可用，可以来自 CLI 内置 Graphviz，也可以来自系统 `PATH`。
 
 在仓库根目录快速检查：
 
 ```powershell
 cd flow2visio
-.\scripts\Graphviz2Visio.Cli.exe where-dot
+.\scripts\Graphviz2Visio-win-x64-standalone.exe where-dot
 ```
 
 ## 安装到 Codex
@@ -171,7 +171,7 @@ flow2visio/
 对于其他客户端，把 `flow2visio/` 复制到对应客户端的 skill 目录，并确认：
 
 - `SKILL.md` 位于已安装 skill 目录的根部。
-- `scripts/Graphviz2Visio.Cli.exe` 存在。
+- `scripts/Graphviz2Visio-win-x64-standalone.exe` 存在。
 - agent 运行在 Windows，并且可以访问 Visio。
 - 客户端允许执行 bundled scripts 或外部命令。
 
@@ -183,7 +183,7 @@ flow2visio/
 
 - 校验 `flow2visio/` skill 目录结构。
 - 检查 `flow2visio/SKILL.md` frontmatter。
-- 运行 `Graphviz2Visio.Cli.exe where-dot`。
+- 运行 `Graphviz2Visio-win-x64-standalone.exe where-dot`。
 - 将 `flow2visio/` 打包成 release ZIP。
 - 生成 SHA256 校验文件。
 - 将 ZIP 和校验文件发布到 GitHub Release。
@@ -200,9 +200,9 @@ git push origin v1.0.0
 ## CLI 命令
 
 ```powershell
-flow2visio\scripts\Graphviz2Visio.Cli.exe where-dot
-flow2visio\scripts\Graphviz2Visio.Cli.exe dot2plain flow\diagram.dot flow\diagram.plain
-flow2visio\scripts\Graphviz2Visio.Cli.exe plain2visio flow\diagram.plain flow\diagram.vsdx
+flow2visio\scripts\Graphviz2Visio-win-x64-standalone.exe where-dot
+flow2visio\scripts\Graphviz2Visio-win-x64-standalone.exe dot2plain flow\diagram.dot flow\diagram.plain
+flow2visio\scripts\Graphviz2Visio-win-x64-standalone.exe plain2visio flow\diagram.plain flow\diagram.vsdx
 ```
 
 只有在需要转换过程中显示 Visio 窗口时，才给 `plain2visio` 添加 `--visible`。
@@ -225,13 +225,13 @@ flow/diagram.vsdx
 
 如果转换失败：
 
-- 在已安装的 `flow2visio/` 目录中运行 `.\scripts\Graphviz2Visio.Cli.exe where-dot`。
+- 在已安装的 `flow2visio/` 目录中运行 `.\scripts\Graphviz2Visio-win-x64-standalone.exe where-dot`。
 - 确认已经安装 Microsoft Visio。
-- 确认 agent 有权限执行 `Graphviz2Visio.Cli.exe`。
+- 确认 agent 有权限执行 `Graphviz2Visio-win-x64-standalone.exe`。
 - 如果 Windows 拦截了下载的可执行文件，运行：
 
 ```powershell
-Unblock-File .\flow2visio\scripts\Graphviz2Visio.Cli.exe
+Unblock-File .\flow2visio\scripts\Graphviz2Visio-win-x64-standalone.exe
 ```
 
 如果生成的 Visio 形状是黑色填充：
@@ -253,3 +253,7 @@ edge [color="black", fontcolor="black"];
 - [OpenAI Codex Agent Skills 文档](https://developers.openai.com/codex/skills)
 - [Claude Code skills 文档](https://code.claude.com/docs/en/skills)
 - [Agent Skills 开放标准](https://agentskills.io/)
+
+## 友情链接
+
+- [LINUX DO](https://linux.do/) —— 新的理想型社区，技术爱好者的聚集地。

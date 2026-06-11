@@ -13,7 +13,7 @@ flow2visio-skills/
   flow2visio/
     SKILL.md
     scripts/
-      Graphviz2Visio.Cli.exe
+      Graphviz2Visio-win-x64-standalone.exe
     references/
     assets/
 ```
@@ -26,26 +26,26 @@ The `flow2visio` skill helps an agent create Visio `.vsdx` flowcharts by:
 2. Converting DOT to Graphviz plain format.
 3. Converting the plain file to an editable Visio document.
 
-This skill uses the converter from [yjrqz777/graphviz2visio](https://github.com/yjrqz777/graphviz2visio). That project provides the `Graphviz2Visio.Cli.exe` command used by this skill.
+This skill uses the converter from [yjrqz777/graphviz2visio](https://github.com/yjrqz777/graphviz2visio). That project provides the `Graphviz2Visio-win-x64-standalone.exe` command used by this skill.
 
 The bundled CLI is expected at:
 
 ```text
-flow2visio/scripts/Graphviz2Visio.Cli.exe
+flow2visio/scripts/Graphviz2Visio-win-x64-standalone.exe
 ```
 
 ## Requirements
 
 - Windows.
 - Microsoft Visio installed and available to the converter.
-- The bundled `Graphviz2Visio.Cli.exe` in `flow2visio/scripts/`.
+- The bundled `Graphviz2Visio-win-x64-standalone.exe` in `flow2visio/scripts/`.
 - Graphviz `dot` available either from the CLI's embedded Graphviz bundle or from the system `PATH`.
 
 Quick check from the repository root:
 
 ```powershell
 cd flow2visio
-.\scripts\Graphviz2Visio.Cli.exe where-dot
+.\scripts\Graphviz2Visio-win-x64-standalone.exe where-dot
 ```
 
 ## Install For Codex
@@ -171,7 +171,7 @@ flow2visio/
 For other clients, copy `flow2visio/` into that client's skill directory and make sure:
 
 - `SKILL.md` remains at the root of the installed skill folder.
-- `scripts/Graphviz2Visio.Cli.exe` is present.
+- `scripts/Graphviz2Visio-win-x64-standalone.exe` is present.
 - The agent is running on Windows with access to Visio.
 - The client allows execution of bundled scripts or external commands.
 
@@ -183,7 +183,7 @@ The workflow:
 
 - Validates the `flow2visio/` skill layout.
 - Checks `flow2visio/SKILL.md` frontmatter.
-- Runs `Graphviz2Visio.Cli.exe where-dot`.
+- Runs `Graphviz2Visio-win-x64-standalone.exe where-dot`.
 - Packages `flow2visio/` as a release ZIP.
 - Generates a SHA256 checksum.
 - Publishes both files to a GitHub Release.
@@ -200,9 +200,9 @@ Or run the `Release Skill` workflow manually from GitHub Actions and provide a t
 ## CLI Commands
 
 ```powershell
-flow2visio\scripts\Graphviz2Visio.Cli.exe where-dot
-flow2visio\scripts\Graphviz2Visio.Cli.exe dot2plain flow\diagram.dot flow\diagram.plain
-flow2visio\scripts\Graphviz2Visio.Cli.exe plain2visio flow\diagram.plain flow\diagram.vsdx
+flow2visio\scripts\Graphviz2Visio-win-x64-standalone.exe where-dot
+flow2visio\scripts\Graphviz2Visio-win-x64-standalone.exe dot2plain flow\diagram.dot flow\diagram.plain
+flow2visio\scripts\Graphviz2Visio-win-x64-standalone.exe plain2visio flow\diagram.plain flow\diagram.vsdx
 ```
 
 Use `--visible` with `plain2visio` only when Visio should be shown during conversion.
@@ -225,13 +225,13 @@ If the skill is not discovered:
 
 If conversion fails:
 
-- Run `.\scripts\Graphviz2Visio.Cli.exe where-dot` from inside the installed `flow2visio/` folder.
+- Run `.\scripts\Graphviz2Visio-win-x64-standalone.exe where-dot` from inside the installed `flow2visio/` folder.
 - Confirm Microsoft Visio is installed.
-- Confirm your agent has permission to execute `Graphviz2Visio.Cli.exe`.
+- Confirm your agent has permission to execute `Graphviz2Visio-win-x64-standalone.exe`.
 - If Windows blocks a downloaded executable, run:
 
 ```powershell
-Unblock-File .\flow2visio\scripts\Graphviz2Visio.Cli.exe
+Unblock-File .\flow2visio\scripts\Graphviz2Visio-win-x64-standalone.exe
 ```
 
 If generated Visio shapes appear with black fills:
@@ -253,3 +253,7 @@ edge [color="black", fontcolor="black"];
 - [OpenAI Codex Agent Skills documentation](https://developers.openai.com/codex/skills)
 - [Claude Code skills documentation](https://code.claude.com/docs/en/skills)
 - [Agent Skills open standard](https://agentskills.io/)
+
+## LINUX DO
+
+- [LINUX DO](https://linux.do/) —— 新的理想型社区，技术爱好者的聚集地。

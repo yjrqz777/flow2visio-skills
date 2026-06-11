@@ -49,7 +49,7 @@ jobs:
         run: |
           $required = @(
             "$env:SKILL_DIR/SKILL.md",
-            "$env:SKILL_DIR/scripts/Graphviz2Visio.Cli.exe"
+            "$env:SKILL_DIR/scripts/Graphviz2Visio-win-x64-standalone.exe"
           )
 
           foreach ($path in $required) {
@@ -83,7 +83,7 @@ jobs:
       - name: Check bundled converter
         shell: pwsh
         run: |
-          & "$env:SKILL_DIR/scripts/Graphviz2Visio.Cli.exe" where-dot
+          & "$env:SKILL_DIR/scripts/Graphviz2Visio-win-x64-standalone.exe" where-dot
 
       - name: Package skill
         shell: pwsh
