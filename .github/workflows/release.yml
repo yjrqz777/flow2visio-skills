@@ -49,9 +49,7 @@ jobs:
         run: |
           $required = @(
             "$env:SKILL_DIR/SKILL.md",
-            "$env:SKILL_DIR/scripts/Graphviz2Visio.Cli.exe",
-            "$env:SKILL_DIR/references",
-            "$env:SKILL_DIR/assets"
+            "$env:SKILL_DIR/scripts/Graphviz2Visio.Cli.exe"
           )
 
           foreach ($path in $required) {
@@ -59,6 +57,9 @@ jobs:
               throw "Missing required skill path: $path"
             }
           }
+
+          New-Item -ItemType Directory -Force "$env:SKILL_DIR/references" | Out-Null
+          New-Item -ItemType Directory -Force "$env:SKILL_DIR/assets" | Out-Null
 
       - name: Validate SKILL.md frontmatter
         shell: pwsh
