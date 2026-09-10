@@ -48,20 +48,19 @@ $converter = Get-ChildItem -Path "<skill-directory>\scripts" -File -Filter "*.ex
 
 每个 Plain 输入必须按相同顺序对应一个 `--page-name`，每个输入生成一个独立页面。所有页面通过一次 `plain2visio-batch` 生成到同一个 `.vsdx`。
 
-## 两步验证闭环
+## 检测、修复与验证闭环
 
-每个页面必须先通过规则验证和几何验证，才能参与最终 Visio 转换。初次生成不计为重试；任一步失败后最多修改并重新验证 3 次，即每个页面最多执行 4 轮验证。不得无限重试，也不得在验证失败时生成或覆盖最终 `.vsdx`。
+每个页面使用同一转换器完成确定性闭环，不让 Agent 反复试探几何布局：
 
-每轮按以下顺序执行：
+1. 对 DOT 执行 `validate-dot`。只有 DOT 结构规则通过后才继续。
+2. 执行 `dot2plain`。Graphviz 负责节点分层和位置；其边路径只作为端口方向提示。
+3. 对新 Plain 执行 `validate-layout`。该命令先在 `detected` 中报告 Graphviz 原始路径问题，再运行曼哈顿正交路由器自动修复，最后在 `validation` 中验证实际待渲染路线。
+4. 以 `validation.passed` 和进程退出码为准。`detected` 中存在问题但 `validation.passed=true` 时无需修改 DOT。
+5. 所有页面通过后执行一次 `plain2visio-batch`。Renderer 会再次运行同一套路由和验证；验证失败时拒绝覆盖正式 `.vsdx`。每条逻辑边必须输出为一个完整 Visio 折线形状。
 
-1. 对 DOT 执行 `validate-dot`。退出码为 `0` 才能继续；退出码为 `3` 时读取 JSON 中的 `code`、`node`、`edge`、`otherEdge` 和坐标，针对具体问题修改 DOT。
-2. DOT 通过后执行 `dot2plain`，不得复用上一次失败轮次留下的 Plain。
-3. 对新生成的 Plain 执行 `validate-layout`。退出码为 `0` 表示该页面通过；退出码为 `3` 时根据 JSON 报告修改 DOT，并从第一步重新开始。
-4. 所有页面均通过两步验证后，才按既定顺序执行一次 `plain2visio-batch`。
+路由器对每条边最多计算两个候选：先寻找不穿节点且不与已路由边冲突的路径；无解时再寻找带高冲突惩罚的兜底路径。两次均为确定性计算，不触发 Agent 重写 DOT。
 
-重试时按最小改动原则依次尝试：调换侧分支方向；调整 `rank=same`；增大 `nodesep` 或 `ranksep`；缩短并局部结束分支；最后拆分页面。不得为了通过验证而删除关键业务阶段、判断、循环、失败结果或外部交互。
-
-连续 3 次重试后仍失败时立即停止。保留 DOT、最新 Plain 和最后一次 JSON 报告，向用户说明失败页面、剩余问题及涉及的节点或边；不得声称 Visio 已成功生成。
+只有 `validation.passed=false` 时，Agent 才能根据最终 JSON 报告做一次结构性修正，例如调换侧支方向、调整 `rank=same`、增加间距或拆页，然后完整重跑上述步骤。每页最多一次 Agent 修正、两轮验证；仍失败时立即停止该页，保留 DOT、最新 Plain 和 JSON 报告并说明剩余问题，不得继续自我校验或声称正式 Visio 已生成。
 
 ## 分层代码分析
 
@@ -135,7 +134,7 @@ $converter = Get-ChildItem -Path "<skill-directory>\scripts" -File -Filter "*.ex
 
 ## DOT 规则
 
-使用从上到下的 DOT、稳定 ID 和中文标签，以 `\n` 换行，不得生成 Mermaid。默认使用 `splines=polyline`：当前流程同时依赖端口和 `Y`/`N` 边标签，不得改为会忽略这些信息的 `splines=ortho`。避免交叉、保持分支方向和标签正确，优先级高于绝对正交；需要更整齐时通过拆页、缩短侧支和增加间距解决。
+使用从上到下的 DOT、稳定 ID 和中文标签，以 `\n` 换行，不得生成 Mermaid。默认使用 `splines=polyline`：当前流程同时依赖端口和 `Y`/`N` 边标签，不得改为会忽略这些信息的 `splines=ortho`。Graphviz 只负责节点布局与端口方向提示；最终连线由转换器重建为仅含水平、垂直线段的曼哈顿路径。
 
 ### 判断与短侧分支模板
 
@@ -196,6 +195,6 @@ choose_b -> handle_default [label="N", tailport=s, headport=n];
 
 ## 完成检查
 
-转换器默认样式为浅灰填充、黑边、宋体、居中文字、圆角终止符、折线连线和纵向页面；保持 DOT 简洁。
+转换器默认样式为浅灰填充、黑边、宋体、居中文字、圆角终止符和纵向页面；每条逻辑边输出为一个仅含 90 度转角的完整折线形状。保持 DOT 简洁。
 
 完成前确认 `.vsdx` 存在、页面数及中文标题正确、关键路径可追踪、无明显交叉/长线、`Y`/`N` 无误。最后报告输出路径、页面名称、分析及忽略范围，以及无法可靠推断的代码路径。
