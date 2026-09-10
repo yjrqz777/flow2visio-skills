@@ -107,10 +107,10 @@ $converter = Get-ChildItem -Path "<skill-directory>\scripts" -File -Filter "*.ex
 
 1. 会改变路径、重要数据/状态，调用外部系统，产生输出或独立失败结果的阶段必须单独显示。
 2. 有失败分支的读取、校验和解析不得合并。相邻操作只有目的相同且中间无判断、状态边界、外部交互或失败边界时才可合并，通常不超过三个操作。
-3. 重要循环显示条件、主体效果和退出结果；循环返回线使用独立外侧通道。返回线过长或主导页面时拆分子流程。
+3. 重要循环显示条件、主体效果和退出结果；循环返回边使用 `constraint=false`，并从节点同一侧进出，尽量形成独立外侧通道。返回线过长、穿过主列或主导页面时拆分子流程。
 4. 每页确定一条主要成功路径，按执行顺序置于居中的垂直列。主路径相邻节点直接由上向下连接。
 5. 每个判断恰有一条 `Y` 和一条 `N` 输出；输入从顶部进入，主路径从底部离开，侧分支从最合适的左侧或右侧离开。必要时改写问题，使主要结果向下。
-6. 侧分支必须短、近且只属于其控制判断；最多向一个水平方向延伸一次，不得穿过主列、跨越其他区域、反向折返或重新进入主路径。放不下时拆子流程。
+6. 侧分支必须短、近且只属于其控制判断；最多向一个水平方向延伸一次，不得穿过主列、跨越其他区域或反向折返。侧分支需要汇合时，只能在附近的后续节点局部汇合；无法局部汇合时分别结束或拆分子流程。
 7. 普通处理框只能有一个业务出口，不得充当三路以上分发器。三个以上选择使用简短纵向判断链；仍复杂时拆分页面。
 8. 不把全局 `try/catch/finally` 等实现结构画成节点，只保留影响流程的业务错误分支。
 9. 多条路径只有能在结束节点附近局部汇合且不交叉时才共用结束节点，否则分别结束。
@@ -118,11 +118,13 @@ $converter = Get-ChildItem -Path "<skill-directory>\scripts" -File -Filter "*.ex
 
 ## DOT 规则
 
-使用从上到下的 DOT、稳定 ID 和中文标签，以 `\n` 换行，不得生成 Mermaid。
+使用从上到下的 DOT、稳定 ID 和中文标签，以 `\n` 换行，不得生成 Mermaid。默认使用 `splines=polyline`：当前流程同时依赖端口和 `Y`/`N` 边标签，不得改为会忽略这些信息的 `splines=ortho`。避免交叉、保持分支方向和标签正确，优先级高于绝对正交；需要更整齐时通过拆页、缩短侧支和增加间距解决。
+
+### 判断与短侧分支模板
 
 ```dot
 digraph Flow {
-  graph [rankdir=TB, splines=ortho, nodesep=0.55, ranksep=0.7, bgcolor="white"];
+  graph [rankdir=TB, splines=polyline, nodesep=0.65, ranksep=0.8, bgcolor="white", ordering="out"];
   node [fontname="SimSun", fontsize=11, shape=box, style="filled", fillcolor="#D9D9D9", color="black"];
   edge [fontname="SimSun", fontsize=10, color="black"];
 
@@ -136,24 +138,47 @@ digraph Flow {
 
   start -> validate [tailport=s, headport=n];
   validate -> valid [tailport=s, headport=n];
-  valid -> process [label="Y", labeldistance=1.5, tailport=s, headport=n];
+  valid -> process [label="Y", tailport=s, headport=n];
 
+  // rank=same 可以包含控制判断和它的一个短侧支，但不能包含两个连续主路径节点。
   { rank=same; valid; report; }
-  valid -> report [label="N", labeldistance=1.5, tailport=e, headport=w];
+  valid -> report [label="N", tailport=e, headport=w];
   report -> error_end [tailport=s, headport=n];
 
   process -> finish [tailport=s, headport=n];
 }
 ```
 
+### 外侧循环模板
+
+循环判断的退出结果沿主路径向下，返回结果从同一侧回到较早节点。循环边仅负责返回，不参与主路径排序；如果仍穿过节点或其他分支，必须拆成独立子流程页。
+
+```dot
+validate -> process [tailport=s, headport=n];
+process -> retry [tailport=s, headport=n];
+retry -> finish [label="N", tailport=s, headport=n];
+retry -> validate [label="Y", constraint=false, tailport=w, headport=w];
+```
+
+### 多路选择模板
+
+三个以上结果不得从一个处理框或判断框横向扇出，改写成纵向判断链；每个菱形仍只有 `Y` 和 `N` 两个输出。
+
+```dot
+choose_a -> handle_a [label="Y", tailport=e, headport=w];
+choose_a -> choose_b [label="N", tailport=s, headport=n];
+choose_b -> handle_b [label="Y", tailport=e, headport=w];
+choose_b -> handle_default [label="N", tailport=s, headport=n];
+```
+
 形状：`oval` 表示开始/结束，`box` 表示业务步骤，`diamond` 表示条件；`parallelogram` 和 `note` 仅在确有必要时使用。
 
 所有判断输入使用 `headport=n`；主输出使用 `tailport=s`，侧输出使用 `tailport=e` 或 `tailport=w`；禁止从菱形顶部输出。`Y`/`N` 必须贴在实际连线上并验证对应关系。
 
-所有主路径边显式使用 `tailport=s, headport=n`。主路径节点不得放入 `rank=same`，主路径边不得使用 `constraint=false`。`rank=same` 只用于一个短侧分支，`constraint=false` 只用于真正的循环返回。
+所有主路径边显式使用 `tailport=s, headport=n`，不得使用 `constraint=false`。`rank=same` 只允许同时放置“一个控制判断节点和它的一个直接侧分支节点”；不得把两个连续主路径节点放入同一 rank，也不得用它横向排列多个业务阶段。`constraint=false` 只用于真正的循环返回边。
 
 ## 完成检查
 
-转换器默认样式为浅灰填充、黑边、宋体、居中文字、圆角终止符、正交连线和纵向页面；保持 DOT 简洁。
+转换器默认样式为浅灰填充、黑边、宋体、居中文字、圆角终止符、折线连线和纵向页面；保持 DOT 简洁。
 
 完成前确认 `.vsdx` 存在、页面数及中文标题正确、关键路径可追踪、无明显交叉/长线、`Y`/`N` 无误。最后报告输出路径、页面名称、分析及忽略范围，以及无法可靠推断的代码路径。
