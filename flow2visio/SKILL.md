@@ -24,8 +24,8 @@ flowcharts/
     project-flow.plain
     software-architecture.plain
     memory-layout.plain
-    <module>-flow.dot
-    <module>-flow.plain
+    <time-slice-or-task>-flow.dot
+    <time-slice-or-task>-flow.plain
 ```
 
 DOT 和 Plain 全部放入 `.temp/`；根目录只保留分析文档和最终 Visio。
@@ -49,8 +49,8 @@ $converter = Get-ChildItem -Path "<skill-directory>\scripts" -File -Filter "*.ex
 
 & $converter.FullName plain2visio-batch flowcharts\project-flowcharts.vsdx `
   flowcharts\.temp\software-architecture.plain `
-  flowcharts\.temp\project-flow.plain flowcharts\.temp\<module>-flow.plain `
-  --page-name "软件架构总览" --page-name "项目主流程" --page-name "模块业务流程"
+  flowcharts\.temp\project-flow.plain flowcharts\.temp\<time-slice-or-task>-flow.plain `
+  --page-name "软件架构总览" --page-name "项目入口总览" --page-name "<时间片或任务标题>"
 ```
 
 每个 Plain 输入必须按相同顺序对应一个 `--page-name`，每个输入生成一个独立页面。所有页面通过一次 `plain2visio-batch` 生成到同一个 `.vsdx`。
@@ -266,6 +266,6 @@ choose_b -> handle_default [label="N", tailport=s, headport=n];
 
 确认执行入口覆盖表中的时间片/OS 任务和模块均已出现在对应页面；检查节点配色是否按语义区分。生成的 VSDX 中每条边的两个端点必须有 Visio 粘附关系，移动节点时端点应跟随节点；手动移动节点后的自动重路由能力取决于 Visio 的连接器行为，生成器不重新计算已布局的整条路线。
 
-转换器默认样式为浅灰填充、黑边、宋体、居中文字、圆角终止符和纵向页面；每条逻辑边输出为一个仅含 90 度转角的完整折线形状。保持 DOT 简洁。
+转换器默认按 DOT/Plain 颜色输出节点；若输入没有颜色，则按形状类型使用浅蓝处理框、浅黄判断框、浅绿终止符和浅青外部交互框。保持黑色文字和清晰对比。每条逻辑边输出为一个仅含 90 度转角的完整折线形状，并以 Visio 粘附关系连接到两端节点。
 
 完成前确认 `.vsdx` 存在、页面数及中文标题正确、架构依赖和关键路径可追踪、无明显交叉/长线、`Y`/`N` 无误；生成存储页时还要确认地址范围无重叠、越界或遗漏，并从 Plain 坐标复核全部节点外边界不超过 6.0×9.0 英寸。最后报告技能版本、输出路径、页面名称、执行模型、分析及忽略范围、未生成存储页的原因，以及无法可靠推断的代码路径。
